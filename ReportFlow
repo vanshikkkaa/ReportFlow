@@ -1,0 +1,162 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOfhV/xXoX/UFXJHjHwjvTY"
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "hV9daQLI0zpt",
+        "outputId": "7377616c-6beb-48b8-c5a7-0cfcdbec1c4d"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: pandas in /usr/local/lib/python3.12/dist-packages (2.2.2)\n",
+            "Requirement already satisfied: fpdf2 in /usr/local/lib/python3.12/dist-packages (2.8.7)\n",
+            "Requirement already satisfied: matplotlib in /usr/local/lib/python3.12/dist-packages (3.10.0)\n",
+            "Requirement already satisfied: numpy>=1.26.0 in /usr/local/lib/python3.12/dist-packages (from pandas) (2.0.2)\n",
+            "Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.12/dist-packages (from pandas) (2.9.0.post0)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.12/dist-packages (from pandas) (2025.2)\n",
+            "Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.12/dist-packages (from pandas) (2026.2)\n",
+            "Requirement already satisfied: defusedxml in /usr/local/lib/python3.12/dist-packages (from fpdf2) (0.7.1)\n",
+            "Requirement already satisfied: Pillow!=9.2.*,>=8.3.2 in /usr/local/lib/python3.12/dist-packages (from fpdf2) (11.3.0)\n",
+            "Requirement already satisfied: fonttools>=4.34.0 in /usr/local/lib/python3.12/dist-packages (from fpdf2) (4.63.0)\n",
+            "Requirement already satisfied: contourpy>=1.0.1 in /usr/local/lib/python3.12/dist-packages (from matplotlib) (1.3.3)\n",
+            "Requirement already satisfied: cycler>=0.10 in /usr/local/lib/python3.12/dist-packages (from matplotlib) (0.12.1)\n",
+            "Requirement already satisfied: kiwisolver>=1.3.1 in /usr/local/lib/python3.12/dist-packages (from matplotlib) (1.5.0)\n",
+            "Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.12/dist-packages (from matplotlib) (26.2)\n",
+            "Requirement already satisfied: pyparsing>=2.3.1 in /usr/local/lib/python3.12/dist-packages (from matplotlib) (3.3.2)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.12/dist-packages (from python-dateutil>=2.8.2->pandas) (1.17.0)\n"
+          ]
+        }
+      ],
+      "source": [
+        "pip install pandas fpdf2 matplotlib\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "from fpdf import FPDF, XPos, YPos\n",
+        "\n",
+        "# --------------------------\n",
+        "# Read CSV File\n",
+        "# --------------------------\n",
+        "df = pd.read_csv(\"students.csv\", sep=',', engine='python', header=0)\n",
+        "df.columns = df.columns.str.strip()\n",
+        "\n",
+        "# --------------------------\n",
+        "# Data Analysis\n",
+        "# --------------------------\n",
+        "df[\"Average\"] = df[[\"Maths\", \"Science\", \"English\"]].mean(axis=1)\n",
+        "\n",
+        "highest = df[\"Average\"].max()\n",
+        "lowest = df[\"Average\"].min()\n",
+        "overall_average = df[\"Average\"].mean()\n",
+        "\n",
+        "top_student = df.loc[df[\"Average\"].idxmax(), \"Name\"]\n",
+        "\n",
+        "# --------------------------\n",
+        "# Create Bar Chart\n",
+        "# --------------------------\n",
+        "plt.figure(figsize=(8,5))\n",
+        "plt.bar(df[\"Name\"], df[\"Average\"], color=\"skyblue\")\n",
+        "plt.title(\"Average Marks of Students\")\n",
+        "plt.xlabel(\"Students\")\n",
+        "plt.ylabel(\"Average Marks\")\n",
+        "plt.tight_layout()\n",
+        "\n",
+        "chart_name = \"average_marks.png\"\n",
+        "plt.savefig(chart_name)\n",
+        "plt.close()\n",
+        "\n",
+        "# --------------------------\n",
+        "# Generate PDF Report\n",
+        "# --------------------------\n",
+        "pdf = FPDF()\n",
+        "\n",
+        "pdf.add_page()\n",
+        "\n",
+        "pdf.set_font(\"Helvetica\", \"B\", 18)\n",
+        "pdf.cell(0, 10, \"Student Performance Report\", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\"C\")\n",
+        "\n",
+        "pdf.ln(10)\n",
+        "\n",
+        "pdf.set_font(\"Helvetica\", size=12)\n",
+        "\n",
+        "pdf.cell(0,10,f\"Overall Average Marks : {overall_average:.2f}\", new_x=XPos.LMARGIN, new_y=YPos.NEXT)\n",
+        "pdf.cell(0,10,f\"Highest Average       : {highest:.2f}\", new_x=XPos.LMARGIN, new_y=YPos.NEXT)\n",
+        "pdf.cell(0,10,f\"Lowest Average        : {lowest:.2f}\", new_x=XPos.LMARGIN, new_y=YPos.NEXT)\n",
+        "pdf.cell(0,10,f\"Top Student           : {top_student}\", new_x=XPos.LMARGIN, new_y=YPos.NEXT)\n",
+        "\n",
+        "pdf.ln(10)\n",
+        "\n",
+        "pdf.set_font(\"Helvetica\",\"B\",12)\n",
+        "\n",
+        "pdf.cell(45,10,\"Name\",1)\n",
+        "pdf.cell(35,10,\"Math\",1)\n",
+        "pdf.cell(35,10,\"Science\",1)\n",
+        "pdf.cell(35,10,\"English\",1)\n",
+        "pdf.cell(40,10,\"Average\",1)\n",
+        "\n",
+        "pdf.ln()\n",
+        "\n",
+        "pdf.set_font(\"Helvetica\",size=12)\n",
+        "\n",
+        "for _, row in df.iterrows():\n",
+        "    pdf.cell(45,10,row[\"Name\"],1)\n",
+        "    pdf.cell(35,10,str(row[\"Maths\"]),1)\n",
+        "    pdf.cell(35,10,str(row[\"Science\"]),1)\n",
+        "    pdf.cell(35,10,str(row[\"English\"]),1)\n",
+        "    pdf.cell(40,10,f\"{row['Average']:.2f}\",1)\n",
+        "    pdf.ln()\n",
+        "\n",
+        "pdf.ln(10)\n",
+        "\n",
+        "pdf.image(chart_name, x=20, w=170)\n",
+        "\n",
+        "pdf.output(\"Student_Report.pdf\")\n",
+        "\n",
+        "print(\"PDF Report Generated Successfully!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "2yFamOyb156o",
+        "outputId": "794aa995-e705-4012-9731-6dd794fdd6a3"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "PDF Report Generated Successfully!\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
